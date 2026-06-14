@@ -1,0 +1,406 @@
+[
+  {
+    "name": "Google Business Profile",
+    "url": "https://business.google.com/create",
+    "category": "major",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Visit https://business.google.com/create and follow the verification steps"
+  },
+  {
+    "name": "Bing Places",
+    "url": "https://www.bingplaces.com/",
+    "category": "major",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Visit https://www.bingplaces.com/ and sign in with Microsoft account"
+  },
+  {
+    "name": "Yelp",
+    "url": "https://biz.yelp.ca/claim",
+    "category": "major",
+    "region": "canada",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Search your business at https://www.yelp.ca then click 'Claim this business'"
+  },
+  {
+    "name": "YellowPages.ca",
+    "url": "https://www.yellowpages.ca/addlisting/",
+    "category": "major",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "411.ca",
+    "url": "https://www.411.ca/business/add/",
+    "category": "major",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Hotfrog Canada",
+    "url": "https://www.hotfrog.ca/AddBusiness.aspx",
+    "category": "general",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Cylex Canada",
+    "url": "https://www.cylex.ca/add-business.html",
+    "category": "general",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "CanadaOne",
+    "url": "https://www.canadaone.com/ezine/",
+    "category": "general",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": true,
+    "manualGuide": "Submit your business at https://www.canadaone.com"
+  },
+  {
+    "name": "LocalPages.ca",
+    "url": "https://www.localpages.ca/add-listing",
+    "category": "general",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Fyple Canada",
+    "url": "https://www.fyple.ca/add-business/",
+    "category": "general",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Tupalo Canada",
+    "url": "https://tupalo.com/en/add",
+    "category": "general",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Foursquare",
+    "url": "https://foursquare.com/add-place",
+    "category": "general",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Create account at https://foursquare.com then add your place"
+  },
+  {
+    "name": "Tripadvisor",
+    "url": "https://www.tripadvisor.ca/GetListedNew",
+    "category": "general",
+    "region": "canada",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Visit https://www.tripadvisor.ca/GetListedNew to list your business"
+  },
+  {
+    "name": "Facebook Pages",
+    "url": "https://www.facebook.com/pages/create",
+    "category": "social",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Visit https://www.facebook.com/pages/create and create a business page"
+  },
+  {
+    "name": "LinkedIn Company",
+    "url": "https://www.linkedin.com/company/setup/new/",
+    "category": "social",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Visit https://www.linkedin.com/company/setup/new/ to create a company page"
+  },
+  {
+    "name": "MapQuest",
+    "url": "https://listings.mapquest.com/",
+    "category": "maps",
+    "region": "global",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Here Maps",
+    "url": "https://places.ls.hereapi.com/",
+    "category": "maps",
+    "region": "global",
+    "requiresAuth": false,
+    "manualOnly": true,
+    "manualGuide": "Submit via https://mapbuilder.wego.here.com/"
+  },
+  {
+    "name": "OpenStreetMap",
+    "url": "https://www.openstreetmap.org/",
+    "category": "maps",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Create account at https://www.openstreetmap.org and add your business as a node"
+  },
+  {
+    "name": "Canadabusiness.ca",
+    "url": "https://canadabusiness.ca/",
+    "category": "government",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": true,
+    "manualGuide": "Register at https://canadabusiness.ca/business-topic/starting-a-business/"
+  },
+  {
+    "name": "Toronto.ca Business",
+    "url": "https://www.toronto.ca/business-economy/",
+    "category": "local",
+    "region": "toronto",
+    "requiresAuth": false,
+    "manualOnly": true,
+    "manualGuide": "List at https://www.toronto.ca/business-economy/toronto-business-directory/"
+  },
+  {
+    "name": "Toronto Board of Trade",
+    "url": "https://www.bot.com/",
+    "category": "local",
+    "region": "toronto",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Join at https://www.bot.com/membership"
+  },
+  {
+    "name": "Better Business Bureau",
+    "url": "https://www.bbb.org/ca/on/toronto",
+    "category": "trust",
+    "region": "canada",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Apply at https://www.bbb.org/ca/on/toronto/businesses-overview"
+  },
+  {
+    "name": "Chambers of Commerce",
+    "url": "https://www.chamber.ca/",
+    "category": "local",
+    "region": "canada",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Find your local chamber at https://www.chamber.ca/chamber-finder/"
+  },
+  {
+    "name": "Waze Places",
+    "url": "https://www.waze.com/",
+    "category": "maps",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Submit place via https://www.waze.com/en/editor"
+  },
+  {
+    "name": "Apple Maps Connect",
+    "url": "https://mapsconnect.apple.com/",
+    "category": "maps",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Claim your business at https://mapsconnect.apple.com"
+  },
+  {
+    "name": "Angi (Angie's List)",
+    "url": "https://www.angi.com/pro",
+    "category": "service",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Join as a pro at https://www.angi.com/pro"
+  },
+  {
+    "name": "HomeStars",
+    "url": "https://homestars.com/companies/sign_up",
+    "category": "service",
+    "region": "canada",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Sign up at https://homestars.com/companies/sign_up"
+  },
+  {
+    "name": "Houzz",
+    "url": "https://www.houzz.com/for-professionals",
+    "category": "service",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Create pro profile at https://www.houzz.com/for-professionals/registration"
+  },
+  {
+    "name": "Thumbtack",
+    "url": "https://www.thumbtack.com/pro",
+    "category": "service",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Join at https://www.thumbtack.com/pro"
+  },
+  {
+    "name": "Bark.com",
+    "url": "https://www.bark.com/en/ca/professionals/",
+    "category": "service",
+    "region": "canada",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Register at https://www.bark.com/en/ca/professionals/"
+  },
+  {
+    "name": "Clutch.co",
+    "url": "https://clutch.co/get-listed",
+    "category": "b2b",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Get listed at https://clutch.co/get-listed"
+  },
+  {
+    "name": "Expertise.com",
+    "url": "https://www.expertise.com/",
+    "category": "service",
+    "region": "global",
+    "requiresAuth": false,
+    "manualOnly": true,
+    "manualGuide": "Contact https://www.expertise.com/contact to get listed"
+  },
+  {
+    "name": "Dexknows",
+    "url": "https://www.dexknows.com/",
+    "category": "general",
+    "region": "global",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Manta",
+    "url": "https://www.manta.com/add-your-business",
+    "category": "general",
+    "region": "global",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Superpages",
+    "url": "https://www.superpages.com/",
+    "category": "general",
+    "region": "global",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "EZlocal",
+    "url": "https://ezlocal.com/",
+    "category": "general",
+    "region": "global",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Lacartes.com",
+    "url": "https://www.lacartes.com/",
+    "category": "general",
+    "region": "global",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "n49.ca",
+    "url": "https://n49.ca/",
+    "category": "general",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Canada411",
+    "url": "https://www.canada411.ca/",
+    "category": "general",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": true,
+    "manualGuide": "Claim your listing at https://www.canada411.ca/business/claim/"
+  },
+  {
+    "name": "Brownbook.net",
+    "url": "https://www.brownbook.net/",
+    "category": "general",
+    "region": "global",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "ShowMeLocal",
+    "url": "https://www.showmelocal.com/",
+    "category": "general",
+    "region": "global",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Yalwa",
+    "url": "https://www.yalwa.ca/",
+    "category": "general",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Bing Local",
+    "url": "https://www.bing.com/local/",
+    "category": "major",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Add your business via https://www.bingplaces.com"
+  },
+  {
+    "name": "Yellow.ca",
+    "url": "https://yellow.ca/",
+    "category": "general",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Whitepages",
+    "url": "https://www.whitepages.com/",
+    "category": "general",
+    "region": "global",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Nextdoor Business",
+    "url": "https://business.nextdoor.com/",
+    "category": "local",
+    "region": "global",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Create a business page at https://business.nextdoor.com"
+  },
+  {
+    "name": "BBB Canada",
+    "url": "https://www.bbb.org/ca/",
+    "category": "trust",
+    "region": "canada",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Apply for accreditation at https://www.bbb.org/ca/en/accreditation"
+  }
+]

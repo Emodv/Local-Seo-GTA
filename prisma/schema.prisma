@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  websiteUrl   String
+  businessName String?
+  address      String?
+  phone        String?
+  industry     String?
+  keywords     String[] @default([])
+  services     String[] @default([])
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  directorySubmissions DirectorySubmission[]
+  guestPosts           GuestPost[]
+  classifiedAds        ClassifiedAd[]
+
+  @@map("sessions")
+}
+
+model DirectorySubmission {
+  id            String   @id @default(cuid())
+  sessionId     String
+  directoryName String
+  directoryUrl  String
+  submittedUrl  String?
+  status        String   @default("pending")
+  error         String?
+  manualUrl     String?
+  createdAt     DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("directory_submissions")
+}
+
+model GuestPost {
+  id        String   @id @default(cuid())
+  sessionId String
+  platform  String
+  postUrl   String?
+  title     String?
+  content   String?
+  status    String   @default("pending")
+  error     String?
+  createdAt DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("guest_posts")
+}
+
+model ClassifiedAd {
+  id        String   @id @default(cuid())
+  sessionId String
+  platform  String
+  adUrl     String?
+  title     String?
+  content   String?
+  status    String   @default("pending")
+  error     String?
+  createdAt DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("classified_ads")
+}

@@ -1,0 +1,76 @@
+[
+  {
+    "name": "Kijiji Toronto",
+    "url": "https://www.kijiji.ca/p-post-ad.html",
+    "region": "toronto",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Post at https://www.kijiji.ca - create account and post in Services > Toronto"
+  },
+  {
+    "name": "Craigslist Toronto",
+    "url": "https://toronto.craigslist.org/post",
+    "region": "toronto",
+    "requiresAuth": false,
+    "manualOnly": true,
+    "manualGuide": "Post at https://toronto.craigslist.org/post - select Services category"
+  },
+  {
+    "name": "Locanto Toronto",
+    "url": "https://toronto.locanto.net/post/",
+    "region": "toronto",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Oodle Toronto",
+    "url": "https://www.oodle.com/",
+    "region": "toronto",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Used.ca",
+    "url": "https://www.used.ca/post/",
+    "region": "canada",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Post at https://www.used.ca - create account and post in your service category"
+  },
+  {
+    "name": "Classifieds.ca",
+    "url": "https://www.classifieds.ca/post-ad/",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "FreeAdsTime",
+    "url": "https://www.freeadstime.org/",
+    "region": "global",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "Gumtree Canada",
+    "url": "https://www.gumtree.com/p/post",
+    "region": "canada",
+    "requiresAuth": true,
+    "manualOnly": true,
+    "manualGuide": "Post at https://www.gumtree.com/services"
+  },
+  {
+    "name": "Adpost Toronto",
+    "url": "https://www.adpost.com/ca/services/",
+    "region": "toronto",
+    "requiresAuth": false,
+    "manualOnly": false
+  },
+  {
+    "name": "GeekiList",
+    "url": "https://www.geeklist.ca/",
+    "region": "canada",
+    "requiresAuth": false,
+    "manualOnly": false
+  }
+]
