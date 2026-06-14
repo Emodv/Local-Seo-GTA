@@ -8,17 +8,21 @@ datasource db {
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  websiteUrl   String
-  businessName String?
-  address      String?
-  phone        String?
-  industry     String?
-  keywords     String[] @default([])
-  services     String[] @default([])
-  status       String   @default("pending")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default(cuid())
+  websiteUrl      String
+  businessName    String?
+  address         String?
+  phone           String?
+  industry        String?
+  keywords        String[] @default([])
+  services        String[] @default([])
+  status          String   @default("pending")
+  seoScore        Int?
+  semrushData     Json?
+  googlePlacesData Json?
+  tweetUrl        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   directorySubmissions DirectorySubmission[]
   guestPosts           GuestPost[]

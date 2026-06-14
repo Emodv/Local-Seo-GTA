@@ -20,5 +20,9 @@ export async function GET(
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  return NextResponse.json(session);
+  return NextResponse.json({
+    ...session,
+    semrushData: session.semrushData ?? null,
+    googlePlacesData: session.googlePlacesData ?? null,
+  });
 }

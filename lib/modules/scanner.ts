@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { emitProgress } from "../progress";
+import { smartScrape } from "./scrapegraph";
 
 export interface ScanResult {
   title: string;
@@ -12,6 +13,7 @@ export interface ScanResult {
   phones: string[];
   emails: string[];
   address: string;
+  sgaiEnhanced?: boolean;
 }
 
 export async function scanWebsite(url: string, sessionId: string): Promise<ScanResult> {
@@ -111,7 +113,7 @@ export async function scanWebsite(url: string, sessionId: string): Promise<ScanR
 
   emitProgress(sessionId, `Extracted ${topKeywords.length} keywords from ${url}`, "success");
 
-  return {
+  const cheerioResult: ScanResult = {
     title,
     description,
     keywords: Array.from(new Set([...topKeywords, ...metaKeywords])).slice(0, 30),
@@ -122,5 +124,29 @@ export async function scanWebsite(url: string, sessionId: string): Promise<ScanR
     phones,
     emails,
     address,
+    sgaiEnhanced: false,
   };
+
+  // Enhance with ScrapeGraphAI if available
+  const sgaiData = await smartScrape(url, sessionId);
+  if (sgaiData) {
+    if (sgaiData.keywords?.length) {
+      cheerioResult.keywords = Array.from(
+        new Set([...cheerioResult.keywords, ...sgaiData.keywords])
+      ).slice(0, 40);
+    }
+    if (sgaiData.phone && !cheerioResult.phones.length) {
+      cheerioResult.phones = [sgaiData.phone];
+    }
+    if (sgaiData.address && !cheerioResult.address) {
+      cheerioResult.address = sgaiData.address;
+    }
+    if (sgaiData.email && !cheerioResult.emails.length) {
+      cheerioResult.emails = [sgaiData.email];
+    }
+    cheerioResult.sgaiEnhanced = true;
+    emitProgress(sessionId, `ScrapeGraphAI enhanced scan complete (${cheerioResult.keywords.length} keywords total)`, "success");
+  }
+
+  return cheerioResult;
 }

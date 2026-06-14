@@ -7,6 +7,7 @@ import { submitToDirectories } from "@/lib/modules/directories";
 import { postClassifiedAds } from "@/lib/modules/classified-ads";
 import { publishGuestPosts } from "@/lib/modules/guest-posts";
 import { runSeoActions } from "@/lib/modules/seo-actions";
+import { findBusinessOnGoogle } from "@/lib/modules/google-places";
 import { emitProgress } from "@/lib/progress";
 
 const schema = z.object({
@@ -16,7 +17,7 @@ const schema = z.object({
   phone: z.string().optional(),
 });
 
-// Rate limiting: simple in-memory store
+// Rate limiting: in-memory per IP
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function checkRateLimit(ip: string): boolean {
@@ -51,7 +52,6 @@ export async function POST(req: NextRequest) {
 
   const { websiteUrl, businessName, address, phone } = parsed.data;
 
-  // Create session
   const session = await prisma.session.create({
     data: {
       websiteUrl,
@@ -62,14 +62,14 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Run automation in background (don't await)
+  // Run automation in background
   runAutomation(session.id, websiteUrl, businessName, address, phone).catch(async (err) => {
     console.error("Automation error:", err);
     await prisma.session.update({
       where: { id: session.id },
       data: { status: "failed" },
     });
-    emitProgress(session.id, `Error: ${err.message}`, "error");
+    emitProgress(session.id, `Fatal error: ${err instanceof Error ? err.message : "unknown"}`, "error");
     emitProgress(session.id, "DONE", "done");
   });
 
@@ -83,73 +83,99 @@ async function runAutomation(
   address?: string,
   phone?: string
 ) {
-  try {
-    emitProgress(sessionId, "Starting GTA Local SEO Bot...", "info");
+  emitProgress(sessionId, "Starting GTA Local SEO Bot...", "info");
 
-    // Module A: Scan
-    emitProgress(sessionId, "Scanning website...", "info");
-    const scan = await scanWebsite(websiteUrl, sessionId);
+  // ── Module A: Scan (Cheerio + ScrapeGraphAI enhancement) ──────────────
+  emitProgress(sessionId, "Scanning website...", "info");
+  const scan = await scanWebsite(websiteUrl, sessionId);
+  emitProgress(sessionId, `Extracted ${scan.keywords.length} keywords${scan.sgaiEnhanced ? " (AI-enhanced)" : ""}`, "success");
 
-    // Module A: Classify
-    const classification = await classifyBusiness(scan, sessionId);
+  // ── Module A: AI classify business ────────────────────────────────────
+  const classification = await classifyBusiness(scan, sessionId);
+  if (businessName) classification.businessName = businessName;
+  if (!scan.phones.length && phone) scan.phones = [phone];
+  if (!scan.address && address) scan.address = address;
 
-    // Merge extracted data with user-provided data
-    if (businessName) classification.businessName = businessName;
-    if (!scan.phones.length && phone) scan.phones = [phone];
-    if (!scan.address && address) scan.address = address;
+  // ── Google Places: Find & validate business ───────────────────────────
+  emitProgress(sessionId, "Checking Google Business Profile status...", "info");
+  const placesData = await findBusinessOnGoogle(
+    businessName || classification.businessName,
+    address || scan.address || "Toronto Ontario",
+    sessionId
+  );
 
-    emitProgress(sessionId, `Extracted ${scan.keywords.length} keywords`, "success");
+  const isGoogleListed = placesData?.isListed ?? false;
 
-    // Update session with findings
-    await prisma.session.update({
-      where: { id: sessionId },
-      data: {
-        industry: classification.industry,
-        keywords: scan.keywords,
-        services: classification.services,
-        businessName: classification.businessName,
-        address: scan.address || address || null,
-        phone: scan.phones[0] || phone || null,
-      },
-    });
+  // Enrich NAP from Google Places if not provided
+  const enrichedPhone = phone || placesData?.phone || scan.phones[0] || "";
+  const enrichedAddress = address || placesData?.address || scan.address || "Toronto, ON";
+  const enrichedBusinessName = businessName || placesData?.name || classification.businessName;
 
-    // Module C: Directory submissions
-    emitProgress(sessionId, "Starting directory submissions...", "info");
-    await submitToDirectories(
+  if (placesData?.isListed) {
+    emitProgress(
       sessionId,
-      classification,
-      scan.keywords,
-      websiteUrl,
-      businessName || classification.businessName,
-      address || scan.address,
-      phone || scan.phones[0]
+      `Google Maps: Listed ✓ — ⭐ ${placesData.rating} (${placesData.reviewCount} reviews)`,
+      "success"
     );
-
-    // Module B: Classified ads
-    emitProgress(sessionId, "Generating classified ads...", "info");
-    await postClassifiedAds(sessionId, classification, scan.keywords, websiteUrl);
-
-    // Module D: Guest posts
-    emitProgress(sessionId, "Generating guest post content...", "info");
-    await publishGuestPosts(sessionId, classification, scan.keywords, websiteUrl);
-
-    // Module E: Additional SEO
-    await runSeoActions(
-      sessionId,
-      websiteUrl,
-      classification.businessName,
-      classification.industry,
-      scan.keywords
-    );
-
-    await prisma.session.update({
-      where: { id: sessionId },
-      data: { status: "completed" },
-    });
-
-    emitProgress(sessionId, "All SEO tasks completed successfully!", "success");
-    emitProgress(sessionId, "DONE", "done");
-  } catch (err) {
-    throw err;
+  } else {
+    emitProgress(sessionId, "Google Maps: Not listed yet — submitting to directories will help", "warning");
   }
+
+  // Save initial session data
+  await prisma.session.update({
+    where: { id: sessionId },
+    data: {
+      industry: classification.industry,
+      keywords: scan.keywords,
+      services: classification.services,
+      businessName: enrichedBusinessName,
+      address: enrichedAddress,
+      phone: enrichedPhone,
+      googlePlacesData: placesData ? (placesData as object) : undefined,
+    },
+  });
+
+  // ── Module C: Directory submissions ───────────────────────────────────
+  emitProgress(sessionId, "Starting directory submissions...", "info");
+  await submitToDirectories(
+    sessionId,
+    classification,
+    scan.keywords,
+    websiteUrl,
+    enrichedBusinessName,
+    enrichedAddress,
+    enrichedPhone
+  );
+
+  // ── Module B: Classified ads ───────────────────────────────────────────
+  emitProgress(sessionId, "Generating classified ads...", "info");
+  await postClassifiedAds(sessionId, classification, scan.keywords, websiteUrl);
+
+  // ── Module D: Guest posts ─────────────────────────────────────────────
+  emitProgress(sessionId, "Generating guest post content...", "info");
+  await publishGuestPosts(sessionId, classification, scan.keywords, websiteUrl);
+
+  // ── Module E: SemRush + Twitter + SEO report ──────────────────────────
+  const seoReport = await runSeoActions(
+    sessionId,
+    websiteUrl,
+    enrichedBusinessName,
+    classification.industry,
+    scan.keywords,
+    isGoogleListed
+  );
+
+  // Save final data
+  await prisma.session.update({
+    where: { id: sessionId },
+    data: {
+      status: "completed",
+      seoScore: seoReport.seoScore,
+      semrushData: seoReport.semrushData ? (seoReport.semrushData as object) : undefined,
+      tweetUrl: seoReport.tweetUrl || null,
+    },
+  });
+
+  emitProgress(sessionId, `All SEO tasks completed! Final score: ${seoReport.seoScore}/100`, "success");
+  emitProgress(sessionId, "DONE", "done");
 }
