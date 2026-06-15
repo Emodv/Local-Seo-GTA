@@ -19,3 +19,12 @@ npm-debug.log*
 .DS_Store
 *.pem
 .vercel
+
+# Telegram scraper – runtime artifacts
+telegram_scraper/*.session
+telegram_scraper/businesses.db
+telegram_scraper/output/
+output/
+
+# Telegram scraper – secrets
+telegram_scraper/.env
