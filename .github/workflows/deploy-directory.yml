@@ -1,0 +1,73 @@
+name: Build and Deploy Business Directory
+
+on:
+  push:
+    branches: [main, claude/telegram-business-directory-27ncwg]
+    paths:
+      - 'telegram_scraper/**'
+      - '.github/workflows/deploy-directory.yml'
+  schedule:
+    - cron: '0 * * * *'   # every hour
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r telegram_scraper/requirements.txt
+
+      - name: Restore Telegram session
+        if: ${{ secrets.TELEGRAM_SESSION_B64 != '' }}
+        run: echo "${{ secrets.TELEGRAM_SESSION_B64 }}" | base64 -d > telegram_scraper/telegram_session.session
+
+      - name: Run scraper
+        if: ${{ secrets.TELEGRAM_API_ID != '' }}
+        working-directory: telegram_scraper
+        env:
+          TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
+          TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
+          TELEGRAM_PHONE: ${{ secrets.TELEGRAM_PHONE }}
+          TELEGRAM_GROUP_URL: ${{ secrets.TELEGRAM_GROUP_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OUTPUT_DIR: output
+          DB_PATH: businesses.db
+        run: python main.py
+
+      - name: Ensure output exists (placeholder when scraper hasn't run yet)
+        working-directory: telegram_scraper
+        run: |
+          python -c "
+          import db, page_generator as pg
+          db.init_db()
+          pg.generate_index(db.get_all_businesses(), 'output')
+          "
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: telegram_scraper/output
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

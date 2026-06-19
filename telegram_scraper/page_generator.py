@@ -166,6 +166,13 @@ def generate_index(businesses: List[Dict[str, Any]], output_dir: str) -> None:
 </a>"""
 
     total = len(businesses)
+    empty_state = """
+<div class="empty">
+  <div class="empty-icon">📡</div>
+  <h2>New listings are on the way</h2>
+  <p>This directory updates automatically as businesses post in the source Telegram group.
+  Check back soon — the first batch is on its way.</p>
+</div>""" if total == 0 else ""
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -190,6 +197,10 @@ header p{{opacity:.85}}
 .info h3{{font-size:1.05rem;font-weight:600;margin:4px 0 2px}}
 .desc{{font-size:13px;color:#666;line-height:1.45}}
 .detail{{font-size:12px;color:#1a237e;margin-top:5px;display:block}}
+.empty{{max-width:480px;margin:48px auto;text-align:center;color:#555;padding:0 24px}}
+.empty-icon{{font-size:2.6rem;margin-bottom:12px}}
+.empty h2{{font-size:1.3rem;color:#1a237e;margin-bottom:10px}}
+.empty p{{font-size:14px;line-height:1.6}}
 footer{{text-align:center;font-size:12px;color:#888;padding:32px 16px}}
 </style>
 </head>
@@ -199,7 +210,7 @@ footer{{text-align:center;font-size:12px;color:#888;padding:32px 16px}}
   <p>Local GTA businesses from Telegram community ads</p>
   <div class="count">{total} listings</div>
 </header>
-<div class="grid">{cards}</div>
+{f'<div class="grid">{cards}</div>' if total else empty_state}
 <footer>Toronto Business Directory &mdash; Listings sourced from Telegram community groups. Contact businesses directly.</footer>
 </body>
 </html>"""
