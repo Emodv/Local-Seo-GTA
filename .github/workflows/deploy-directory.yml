@@ -22,6 +22,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      HAS_SESSION: ${{ secrets.TELEGRAM_SESSION_B64 != '' }}
+      HAS_TELEGRAM: ${{ secrets.TELEGRAM_API_ID != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -33,11 +36,11 @@ jobs:
         run: pip install -r telegram_scraper/requirements.txt
 
       - name: Restore Telegram session
-        if: ${{ secrets.TELEGRAM_SESSION_B64 != '' }}
+        if: ${{ env.HAS_SESSION == 'true' }}
         run: echo "${{ secrets.TELEGRAM_SESSION_B64 }}" | base64 -d > telegram_scraper/telegram_session.session
 
       - name: Run scraper
-        if: ${{ secrets.TELEGRAM_API_ID != '' }}
+        if: ${{ env.HAS_TELEGRAM == 'true' }}
         working-directory: telegram_scraper
         env:
           TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
