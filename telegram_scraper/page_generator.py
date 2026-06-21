@@ -32,8 +32,10 @@ CATEGORY_ICON: Dict[str, str] = {
 
 
 def slugify(text: str) -> str:
+    """ASCII-only slug. Returns "" if text has no Latin/digit characters
+    (e.g. a Persian-only business name) so callers can fall back to phone."""
     text = text.lower().strip()
-    text = re.sub(r"[^\w\s-]", "", text)
+    text = re.sub(r"[^a-z0-9\s-]", "", text)
     text = re.sub(r"[\s_]+", "-", text)
     return re.sub(r"-+", "-", text).strip("-")[:60]
 

@@ -133,9 +133,10 @@ async def run(full: bool = False) -> None:
                     image_path = dl
                     log.info("  Downloaded image: %s", image_path)
 
-            # ── Unique slug ───────────────────────────────────────────────
+            # ── Unique slug (ASCII; fall back to phone for non-Latin names) ─
             used_slugs = {b["slug"] for b in db.get_all_businesses() if b.get("slug")}
-            slug = _unique_slug(slugify(name), used_slugs)
+            slug_base = slugify(name) or re.sub(r"\D", "", phone) or f"business-{msg.id}"
+            slug = _unique_slug(slug_base, used_slugs)
 
             record = {
                 "phone": phone or f"unknown_{msg.id}",
