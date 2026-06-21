@@ -1,9 +1,12 @@
 import { NextRequest } from "next/server";
-import { registerProgressHandler, unregisterProgressHandler } from "@/lib/progress";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 300;
+
+const POLL_INTERVAL_MS = 1000;
+const MAX_STREAM_MS = 280_000;
 
 export async function GET(
   _req: NextRequest,
@@ -11,56 +14,52 @@ export async function GET(
 ) {
   const { sessionId } = await params;
 
-  // Verify session exists
   const session = await prisma.session.findUnique({ where: { id: sessionId } });
   if (!session) {
     return new Response("Session not found", { status: 404 });
   }
 
-  const stream = new ReadableStream({
-    start(controller) {
-      const encoder = new TextEncoder();
+  const encoder = new TextEncoder();
+  const startedAt = Date.now();
 
-      const send = (message: string, type = "info") => {
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (message: string, type: string) => {
         const data = JSON.stringify({ message, type, timestamp: Date.now() });
         controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-        if (type === "done") {
-          try {
-            controller.close();
-          } catch {}
-        }
       };
 
-      registerProgressHandler(sessionId, send);
+      let lastId = 0;
+      let done = false;
 
-      // If session already completed, send done immediately
-      if (session.status === "completed" || session.status === "failed") {
-        send(
-          session.status === "completed"
-            ? "SEO automation already completed"
-            : "Session failed",
-          session.status === "completed" ? "success" : "error"
-        );
-        send("DONE", "done");
-        unregisterProgressHandler(sessionId, send);
-        return;
+      while (!done) {
+        const events = await prisma.progressEvent.findMany({
+          where: { sessionId, id: { gt: lastId } },
+          orderBy: { id: "asc" },
+        });
+
+        for (const ev of events) {
+          send(ev.message, ev.type);
+          lastId = ev.id;
+          if (ev.type === "done") {
+            done = true;
+            break;
+          }
+        }
+
+        if (done) break;
+
+        if (Date.now() - startedAt > MAX_STREAM_MS) {
+          send("Timed out waiting for completion", "error");
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
       }
 
-      // Cleanup on close
-      const cleanup = () => {
-        unregisterProgressHandler(sessionId, send);
-        try {
-          controller.close();
-        } catch {}
-      };
-
-      // Auto-cleanup after 10 minutes
-      const timeout = setTimeout(cleanup, 600000);
-
-      return () => {
-        clearTimeout(timeout);
-        unregisterProgressHandler(sessionId, send);
-      };
+      try {
+        controller.close();
+      } catch {}
     },
   });
 

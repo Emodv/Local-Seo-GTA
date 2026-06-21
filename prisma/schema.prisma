@@ -63,6 +63,17 @@ model GuestPost {
   @@map("guest_posts")
 }
 
+model ProgressEvent {
+  id        Int      @id @default(autoincrement())
+  sessionId String
+  message   String
+  type      String   @default("info")
+  createdAt DateTime @default(now())
+
+  @@index([sessionId, id])
+  @@map("progress_events")
+}
+
 model ClassifiedAd {
   id        String   @id @default(cuid())
   sessionId String

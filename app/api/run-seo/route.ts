@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { scanWebsite } from "@/lib/modules/scanner";
@@ -9,6 +10,8 @@ import { publishGuestPosts } from "@/lib/modules/guest-posts";
 import { runSeoActions } from "@/lib/modules/seo-actions";
 import { findBusinessOnGoogle } from "@/lib/modules/google-places";
 import { emitProgress } from "@/lib/progress";
+
+export const maxDuration = 300;
 
 const schema = z.object({
   websiteUrl: z.string().url(),
@@ -62,16 +65,19 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Run automation in background
-  runAutomation(session.id, websiteUrl, businessName, address, phone).catch(async (err) => {
-    console.error("Automation error:", err);
-    await prisma.session.update({
-      where: { id: session.id },
-      data: { status: "failed" },
-    });
-    emitProgress(session.id, `Fatal error: ${err instanceof Error ? err.message : "unknown"}`, "error");
-    emitProgress(session.id, "DONE", "done");
-  });
+  // Run automation in background — waitUntil keeps the serverless function
+  // alive after the response is sent (fire-and-forget alone gets killed on Vercel)
+  waitUntil(
+    runAutomation(session.id, websiteUrl, businessName, address, phone).catch(async (err) => {
+      console.error("Automation error:", err);
+      await prisma.session.update({
+        where: { id: session.id },
+        data: { status: "failed" },
+      });
+      emitProgress(session.id, `Fatal error: ${err instanceof Error ? err.message : "unknown"}`, "error");
+      emitProgress(session.id, "DONE", "done");
+    })
+  );
 
   return NextResponse.json({ sessionId: session.id });
 }
