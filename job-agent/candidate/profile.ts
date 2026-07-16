@@ -3,10 +3,11 @@ import type { CandidateProfile } from "../types";
 /**
  * Emod Vafa — candidate profile.
  *
- * Sourced from the project brief. Once the real resume PDF
- * (Emod_Vafa_Resume_2026.pdf) is supplied, run `parseResume()` (TODO) to
- * reconcile/override these fields. Until then this is the single source of
- * truth the pipeline scores against.
+ * Reconciled against the real resume (Emod_Vafa_Resume_2026.pdf), 2026-07-16.
+ * BBA Marketing, Schulich School of Business (York), 2011. Currently Fractional
+ * CMO at Banoo Marketing (2025–present); prior Director of Marketing at Intercap
+ * Inc. (2022–2025). This is the single source of truth the pipeline scores
+ * against.
  */
 export const EMOD_VAFA: CandidateProfile = {
   name: "Emod Vafa",
@@ -29,23 +30,36 @@ export const EMOD_VAFA: CandidateProfile = {
     "revenue marketing",
     "google ads",
     "meta ads",
+    "facebook ads",
     "linkedin ads",
     "programmatic",
+    "dsp",
+    "traffic arbitrage",
     "seo",
     "sem",
+    "email marketing",
     "hubspot",
     "salesforce",
     "ga4",
     "close crm",
+    "twilio",
+    "mailgun",
+    "sendgrid",
+    "apollo.io",
+    "instantly.ai",
     "ai automation",
     "openai",
     "claude",
     "gemini",
+    "prompt engineering",
     "b2b",
     "gtm strategy",
     "lifecycle marketing",
     "acquisition",
     "affiliate marketing",
+    "cro",
+    "cac/ltv optimization",
+    "multi-touch attribution",
     "roas",
     "team leadership",
   ],
@@ -63,6 +77,7 @@ export const EMOD_VAFA: CandidateProfile = {
     "affiliate",
     "ecommerce",
     "skilled trades",
+    "web3",
   ],
   targetTitles: [
     "director of marketing",

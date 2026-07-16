@@ -3,116 +3,132 @@ import type { BragStory } from "../types";
 /**
  * Brag Bank — structured achievement library.
  *
- * Every entry is a real, factual accomplishment expressed in STAR form.
- * The pipeline selects the most relevant stories per job (see
- * core/brag-selector.ts). Nothing here may be fabricated — add only what the
- * candidate can defend in an interview.
+ * Reconciled against the real resume (Emod_Vafa_Resume_2026.pdf), 2026-07-16.
+ * Every entry is a real, factual accomplishment in STAR form with correct
+ * employer attribution. The pipeline selects the most relevant stories per job
+ * (see core/selectors.ts). Nothing here may be fabricated.
  */
 export const BRAG_BANK: BragStory[] = [
   {
     id: "intercap-arr",
     situation:
-      "Intercap Inc. needed to accelerate revenue growth against an aggressive board target.",
+      "Intercap Inc. (premium domain sales, Web3, B2B outbound) needed to scale revenue against an aggressive target.",
     action:
-      "Built and led a full-funnel demand generation engine across paid, SEO, lifecycle, and outbound.",
-    result: "Doubled ARR from $5M to $10M.",
+      "Architected scalable, AI-driven revenue systems across brand, content, performance, and organic — automating lead nurture, segmentation, and reporting.",
+    result: "Grew ARR from $5M to $10M.",
     headline: "Doubled ARR from $5M to $10M at Intercap Inc.",
     metrics: ["ARR $5M -> $10M", "2x revenue"],
     technologies: [
       "demand generation",
       "performance marketing",
-      "hubspot",
-      "salesforce",
-      "seo",
+      "ai automation",
+      "gtm strategy",
+      "cro",
     ],
-    industries: ["b2b", "saas", "fintech"],
+    industries: ["b2b", "saas", "web3", "ecommerce"],
   },
   {
-    id: "affiliate-revenue",
+    id: "intercap-cpl",
     situation:
-      "Affiliate channel was underperforming with flat revenue and rising costs.",
+      "Intercap needed more pipeline without raising cost per lead across paid channels.",
     action:
-      "Restructured partner mix and introduced algorithmic bidding and creative testing.",
-    result: "Grew affiliate revenue by 75% while cutting CPC by 45%.",
-    headline: "Affiliate revenue +75% and CPC -45% via algorithmic bidding.",
-    metrics: ["affiliate revenue +75%", "CPC -45%"],
-    technologies: [
-      "affiliate marketing",
-      "programmatic",
-      "google ads",
-      "performance marketing",
-    ],
-    industries: ["affiliate", "ecommerce"],
-  },
-  {
-    id: "account-scale-roas",
-    situation:
-      "Paid media portfolio needed to scale spend without eroding efficiency.",
-    action:
-      "Managed 70+ accounts with rigorous structure, automation, and bidding discipline.",
-    result: "Sustained 5x+ ROAS across a 70+ account portfolio.",
-    headline: "Managed 70+ accounts at 5x+ ROAS.",
-    metrics: ["70+ accounts", "5x+ ROAS"],
+      "Deployed AI-driven bid automation across Google Ads, Meta, and LinkedIn.",
+    result: "Reduced CPL by 30% while increasing lead volume by 50%.",
+    headline: "Cut CPL 30% and grew lead volume 50% via AI bid automation.",
+    metrics: ["CPL -30%", "lead volume +50%"],
     technologies: [
       "google ads",
       "meta ads",
       "linkedin ads",
       "performance marketing",
-      "roas",
+      "ai automation",
     ],
-    industries: ["b2b", "ecommerce", "legal", "automotive"],
+    industries: ["b2b", "saas", "web3"],
   },
   {
-    id: "team-building",
+    id: "intercap-email",
     situation:
-      "Marketing function needed to scale from a solo operator to a full team.",
+      "Intercap's B2B outbound motion required high-volume, deliverable email at scale.",
     action:
-      "Hired, structured, and mentored a cross-functional marketing team.",
-    result: "Built teams from 1 to 10+ people.",
-    headline: "Scaled marketing teams from 1 to 10+.",
-    metrics: ["1 -> 10+ team members"],
+      "Ran 1M+ email sends/month via Mailgun and SendGrid; managed the B2B pipeline in Close CRM with Twilio SMS.",
+    result: "Sustained 1M+ sends/month feeding a managed Close CRM pipeline.",
+    headline: "Scaled B2B email outbound to 1M+ sends/month (Close CRM + Twilio).",
+    metrics: ["1M+ email sends/month"],
+    technologies: ["email marketing", "close crm", "twilio", "mailgun", "sendgrid", "b2b"],
+    industries: ["b2b", "saas"],
+  },
+  {
+    id: "verticalscope-affiliate",
+    situation:
+      "At VerticalScope, affiliate/arbitrage sites (RateMDs, AutoGuide, FitRated, Treadmill Reviews, RedFlagDeals) needed more efficient revenue.",
+    action:
+      "Ran traffic arbitrage — buying low-cost display/native via DSP and converting to affiliate/ad revenue — with algorithmic bid management.",
+    result: "Grew affiliate revenue 75% while cutting CPC 45%.",
+    headline: "Affiliate revenue +75% and CPC -45% via programmatic arbitrage.",
+    metrics: ["affiliate revenue +75%", "CPC -45%"],
+    technologies: [
+      "affiliate marketing",
+      "traffic arbitrage",
+      "programmatic",
+      "dsp",
+      "performance marketing",
+    ],
+    industries: ["affiliate", "ecommerce", "automotive"],
+  },
+  {
+    id: "sep-accounts-roas",
+    situation:
+      "At Search Engine People / Search Kings, a large book of high-spend accounts spanned ultra-competitive verticals.",
+    action:
+      "Orchestrated 70+ SMB and enterprise accounts (legal, trades, automotive, mortgage, real estate) and built proprietary KPI dashboards automating 30% of reporting.",
+    result: "Consistently achieved 5x+ ROAS across high-spend accounts.",
+    headline: "Managed 70+ accounts at 5x+ ROAS across legal, auto, and trades.",
+    metrics: ["70+ accounts", "5x+ ROAS", "30% reporting automated"],
+    technologies: ["google ads", "performance marketing", "roas", "sem"],
+    industries: ["legal", "automotive", "skilled trades", "real estate"],
+  },
+  {
+    id: "legal-ppc",
+    situation:
+      "Legal PPC for Diamond & Diamond and Preszler Law meant competing at $50–$200+ CPCs in Ontario personal injury.",
+    action:
+      "Managed ultra-high-competition legal search campaigns for top ad positions across Ontario.",
+    result: "Held top ad positions in the most expensive PI keyword markets.",
+    headline: "Won top positions in $50–$200+ CPC legal PI search (Diamond & Diamond, Preszler).",
+    metrics: ["$50–$200+ CPC keywords", "top ad positions Ontario"],
+    technologies: ["google ads", "sem", "performance marketing"],
+    industries: ["legal"],
+  },
+  {
+    id: "intercap-team",
+    situation:
+      "Intercap's marketing function started as a single operator.",
+    action:
+      "Built the department from scratch — hired and led 10 specialists across Email, Social, PPC, SEO, Content, and Web Dev.",
+    result: "Scaled the marketing team from 1 to 10.",
+    headline: "Built a marketing team from 1 to 10 at Intercap.",
+    metrics: ["1 -> 10 team members"],
     technologies: ["team leadership", "gtm strategy"],
-    industries: ["saas", "b2b", "tech"],
+    industries: ["saas", "b2b", "web3"],
   },
   {
-    id: "ai-automation",
+    id: "banoo-ai",
     situation:
-      "Manual marketing ops were limiting throughput and personalization.",
+      "As Fractional CMO at Banoo Marketing, clients in law, cybersecurity, and retail needed lower operational overhead and stable acquisition costs.",
     action:
-      "Deployed AI automation (OpenAI/Claude/Gemini) across content, lead scoring, and CRM workflows.",
+      "Deployed LLM workflows (OpenAI, Claude, Gemini) to automate multi-channel outbound, content, reporting, and landing-page builds.",
     result:
-      "Cut turnaround time and improved lead quality through AI-driven automation.",
+      "Reduced manual operational overhead while stabilizing acquisition costs.",
     headline:
-      "Built AI-driven marketing automation across OpenAI/Claude/Gemini.",
-    metrics: ["AI automation across content + CRM"],
+      "Built AI-driven growth engines (OpenAI/Claude/Gemini) as Fractional CMO.",
+    metrics: ["multi-channel automation", "stabilized CAC"],
     technologies: [
       "ai automation",
       "openai",
       "claude",
       "gemini",
-      "close crm",
-      "hubspot",
+      "prompt engineering",
     ],
-    industries: ["ai", "saas", "tech"],
-  },
-  {
-    id: "vertical-breadth",
-    situation:
-      "Growth mandates spanned very different regulated and competitive verticals.",
-    action:
-      "Ran acquisition and demand programs across Legal (PI & Family), Automotive, Real Estate, Ecommerce, and B2B outbound.",
-    result:
-      "Delivered pipeline and revenue growth across multiple regulated verticals.",
-    headline:
-      "Cross-vertical growth: Legal, Automotive, Real Estate, Ecommerce, B2B.",
-    metrics: ["5+ verticals"],
-    technologies: ["acquisition", "demand generation", "b2b", "seo", "sem"],
-    industries: [
-      "legal",
-      "automotive",
-      "real estate",
-      "ecommerce",
-      "b2b",
-    ],
+    industries: ["legal", "cybersecurity", "ecommerce", "real estate"],
   },
 ];
