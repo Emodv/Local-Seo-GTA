@@ -1,0 +1,631 @@
+// AtlasJobs AI — canonical data model.
+// Postgres + Prisma. Multi-tenant from day one: every owned row carries userId.
+// See ../ARCHITECTURE.md for rationale.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────── Enums ───────────────────────────
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  FRACTIONAL
+  CONSULTING
+}
+
+enum WorkMode {
+  REMOTE
+  HYBRID
+  ONSITE
+}
+
+enum SeniorityLevel {
+  IC
+  MANAGER
+  SENIOR
+  DIRECTOR
+  HEAD
+  VP
+  CMO
+}
+
+enum SourceTier {
+  A_OFFICIAL_API // Greenhouse, Lever, Ashby, SmartRecruiters, Workday, RemoteOK, Job Bank
+  B_LICENSED_AGGREGATOR // LinkedIn/Indeed/Google content via licensed API only
+  C_USER_OWNED // user's Gmail / authenticated browser context
+}
+
+enum JobStatus {
+  DISCOVERED
+  NORMALIZED
+  ENRICHED
+  SCORED
+  QUALIFIED
+  REJECTED
+  ARCHIVED
+  EXPIRED
+}
+
+enum ApplyDecision {
+  AUTO_APPLY
+  APPROVAL_REQUIRED
+  REJECT
+}
+
+enum ApprovalMode {
+  MANUAL
+  ASSISTED
+  AUTONOMOUS
+}
+
+enum ApplicationStatus {
+  DRAFT_READY
+  SUBMITTED
+  INTERVIEWING
+  REJECTED
+  GHOSTED
+  OFFER
+  WITHDRAWN
+}
+
+enum ApplyChannel {
+  EMAIL
+  GREENHOUSE
+  LEVER
+  ASHBY
+  SMARTRECRUITERS
+  WORKDAY
+  COMPANY_FORM
+  LINKEDIN_EASY_APPLY // discovery/prep only — never auto-submitted
+}
+
+enum ResumeVariantKind {
+  GROWTH
+  PERFORMANCE
+  DEMAND_GEN
+  EXECUTIVE
+  B2B
+  SAAS
+  LEGAL
+  AUTOMOTIVE
+  REAL_ESTATE
+  AI
+  CYBERSECURITY
+  HEALTHCARE
+}
+
+enum SummaryMode {
+  PERMANENT
+  FRACTIONAL
+}
+
+enum OutreachKind {
+  RECRUITER_LINKEDIN
+  RECRUITER_EMAIL
+  HIRING_MANAGER_LINKEDIN
+  HIRING_MANAGER_EMAIL
+  FOLLOW_UP
+  THANK_YOU
+}
+
+enum OutreachStatus {
+  DRAFT
+  SENT
+  REPLIED
+  BOUNCED
+}
+
+enum EmailStatus {
+  DRAFT
+  READY
+  SENT
+  FAILED
+}
+
+enum InterviewStage {
+  RECRUITER_SCREEN
+  HIRING_MANAGER
+  PANEL
+  TECHNICAL
+  FINAL
+  OFFER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum ContactSource {
+  LICENSED_ENRICHMENT
+  USER_PROVIDED
+  INBOUND_EMAIL
+  COMPANY_WEBSITE
+}
+
+// ─────────────────────────── Identity & config ───────────────────────────
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  phone         String?
+  location      String?
+  linkedinUrl   String?
+  calendarLink  String?
+  citizenship   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  oauthAccounts OAuthAccount[]
+  settings      Settings?
+  approvalRules ApprovalRule[]
+  savedSearches SavedSearch[]
+  resumes       Resume[]
+  jobs          Job[]
+  applications  Application[]
+  companies     Company[]
+  recruiters    Recruiter[]
+  hiringManagers HiringManager[]
+  outreach      Outreach[]
+  interviews    Interview[]
+  notes         Note[]
+  tasks         Task[]
+  activity      ActivityLog[]
+  analytics     AnalyticsSnapshot[]
+  emailDrafts   EmailDraft[]
+
+  @@map("users")
+}
+
+model OAuthAccount {
+  id                String   @id @default(cuid())
+  userId            String
+  provider          String // google | microsoft
+  providerAccountId String
+  // Encrypted at rest (envelope encryption); never plaintext.
+  accessTokenEnc    String?
+  refreshTokenEnc   String?
+  scope             String?
+  expiresAt         DateTime?
+  createdAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+model Settings {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  minSalaryCad      Int      @default(170000)
+  idealSalaryCad    Int      @default(200000)
+  stretchSalaryCad  Int      @default(250000)
+  targetTitles      String[] @default([])
+  locations         String[] @default([])
+  workModes         WorkMode[] @default([])
+  employmentTypes   EmploymentType[] @default([])
+  industries        String[] @default([])
+  blacklistCompanies String[] @default([])
+  whitelistCompanies String[] @default([])
+  approvalMode      ApprovalMode @default(ASSISTED)
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("settings")
+}
+
+// Explicit, revocable consent for any auto-apply. Scope-limited by design.
+model ApprovalRule {
+  id             String   @id @default(cuid())
+  userId         String
+  name           String
+  enabled        Boolean  @default(false)
+  channel        ApplyChannel
+  minFitScore    Int      @default(95)
+  minConfidence  Int      @default(98)
+  minSalaryCad   Int      @default(170000)
+  requireNoUnknownQuestions Boolean @default(true)
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("approval_rules")
+}
+
+model SavedSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  query     Json // titles, locations, workModes, employmentTypes, salaryFloor
+  enabled   Boolean  @default(true)
+  cron      String? // discovery schedule
+  lastRunAt DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("saved_searches")
+}
+
+// ─────────────────────────── Sourcing ───────────────────────────
+
+model JobSource {
+  id         String     @id @default(cuid())
+  key        String     @unique // e.g. "greenhouse", "lever", "aggregator:linkedin"
+  label      String
+  tier       SourceTier
+  legalBasis String // human-readable justification for compliance audit
+  enabled    Boolean    @default(false)
+  configJson Json? // api base, board tokens, etc. (secrets referenced, not inlined)
+  createdAt  DateTime   @default(now())
+
+  jobs Job[]
+
+  @@map("job_sources")
+}
+
+// ─────────────────────────── Companies & contacts ───────────────────────────
+
+model Company {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  domain        String?
+  industry      String?
+  glassdoorRating Float?
+  employeeCount Int?
+  fundingStage  String?
+  revenueEstimate String?
+  growthSignal  String?
+  recentNews    Json?
+  layoffHistory Boolean? @default(false)
+  techStack     String[] @default([])
+  marketingTeamSize Int?
+  linkedinUrl   String?
+  crunchbaseUrl String?
+  mission       String?
+  values        String[] @default([])
+  researchedAt  DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs           Job[]
+  recruiters     Recruiter[]
+  hiringManagers HiringManager[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("companies")
+}
+
+model Recruiter {
+  id          String   @id @default(cuid())
+  userId      String
+  companyId   String?
+  name        String
+  title       String?
+  email       String? // only if verified; nullable by design
+  emailVerified Boolean @default(false)
+  linkedinUrl String?
+  source      ContactSource
+  createdAt   DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company  Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  outreach Outreach[]
+
+  @@index([userId])
+  @@index([companyId])
+  @@map("recruiters")
+}
+
+model HiringManager {
+  id          String   @id @default(cuid())
+  userId      String
+  companyId   String?
+  name        String
+  title       String?
+  email       String?
+  emailVerified Boolean @default(false)
+  linkedinUrl String?
+  source      ContactSource
+  createdAt   DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company  Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  outreach Outreach[]
+
+  @@index([userId])
+  @@index([companyId])
+  @@map("hiring_managers")
+}
+
+// ─────────────────────────── Jobs ───────────────────────────
+
+model Job {
+  id             String   @id @default(cuid())
+  userId         String
+  sourceId       String?
+  companyId      String?
+  externalId     String? // id at the source
+  dedupeHash     String // sha256(company|title|location|normalizedDescription)
+  url            String
+  title          String
+  companyName    String
+  location       String?
+  workMode       WorkMode?
+  employmentType EmploymentType?
+  seniority      SeniorityLevel?
+  description    String?  @db.Text
+  requirements   String[] @default([])
+  skills         String[] @default([])
+  techStack      String[] @default([])
+  benefits       String[] @default([])
+  salaryMinCad   Int?
+  salaryMaxCad   Int?
+  estimatedSalaryCad Int?
+  salaryEstimated Boolean @default(false)
+  applyChannel   ApplyChannel?
+  applicationUrl String?
+  status         JobStatus @default(DISCOVERED)
+  postedAt       DateTime?
+  firstSeenAt    DateTime @default(now())
+  lastSeenAt     DateTime @default(now())
+
+  // scoring
+  fitScore       Int?
+  fitBreakdown   Json?
+  confidence     Int?
+  applyDecision  ApplyDecision?
+  fitReason      String?  @db.Text
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source      JobSource?   @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  company     Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  application Application?
+  notes       Note[]
+
+  @@unique([userId, dedupeHash])
+  @@index([userId, status])
+  @@index([userId, fitScore])
+  @@map("jobs")
+}
+
+// ─────────────────────────── Résumés ───────────────────────────
+
+model Resume {
+  id        String   @id @default(cuid())
+  userId    String
+  isMaster  Boolean  @default(false)
+  label     String
+  // Structured, factual source content (parsed from master PDF). Never mutated
+  // to fabricate; tailoring only reorders/selects from this.
+  contentJson Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions ResumeVersion[]
+
+  @@index([userId])
+  @@map("resumes")
+}
+
+model ResumeVersion {
+  id           String   @id @default(cuid())
+  resumeId     String
+  variant      ResumeVariantKind
+  summaryMode  SummaryMode
+  // Tailored (reordered) content + rendered artifacts.
+  contentJson  Json
+  atsCoverage  Int // 0-100
+  matchedKeywords String[] @default([])
+  missingKeywords String[] @default([])
+  pdfUrl       String? // rendered one-page PDF (object storage)
+  createdAt    DateTime @default(now())
+
+  resume       Resume        @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  applications Application[]
+
+  @@index([resumeId])
+  @@map("resume_versions")
+}
+
+model CoverLetter {
+  id        String   @id @default(cuid())
+  body      String   @db.Text
+  wordCount Int
+  model     String? // LLM used, for learning/audit
+  createdAt DateTime @default(now())
+
+  application Application?
+
+  @@map("cover_letters")
+}
+
+// ─────────────────────────── Applications & email ───────────────────────────
+
+model Application {
+  id              String   @id @default(cuid())
+  userId          String
+  jobId           String   @unique
+  resumeVersionId String?
+  coverLetterId   String?  @unique
+  status          ApplicationStatus @default(DRAFT_READY)
+  channel         ApplyChannel?
+  approvalMode    ApprovalMode
+  fitScore        Int?
+  confidence      Int?
+  submittedAt     DateTime?
+  followUpsSent   Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job           Job            @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resumeVersion ResumeVersion? @relation(fields: [resumeVersionId], references: [id], onDelete: SetNull)
+  coverLetter   CoverLetter?   @relation(fields: [coverLetterId], references: [id], onDelete: SetNull)
+  emailDrafts   EmailDraft[]
+  outreach      Outreach[]
+  interviews    Interview[]
+  notes         Note[]
+
+  @@index([userId, status])
+  @@map("applications")
+}
+
+model EmailDraft {
+  id            String   @id @default(cuid())
+  userId        String
+  applicationId String?
+  gmailDraftId  String? // id returned by Gmail API after creating the draft
+  toEmail       String? // verified recipient, or user's own address as review copy
+  toIsReviewCopy Boolean @default(false)
+  subject       String
+  body          String   @db.Text
+  attachments   Json // [{name, storageUrl, kind}]
+  status        EmailStatus @default(DRAFT)
+  createdAt     DateTime @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("email_drafts")
+}
+
+model Outreach {
+  id             String   @id @default(cuid())
+  userId         String
+  applicationId  String?
+  recruiterId    String?
+  hiringManagerId String?
+  kind           OutreachKind
+  channel        String // linkedin | email
+  body           String   @db.Text
+  status         OutreachStatus @default(DRAFT)
+  sentAt         DateTime?
+  repliedAt      DateTime?
+  createdAt      DateTime @default(now())
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application   Application?   @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  recruiter     Recruiter?     @relation(fields: [recruiterId], references: [id], onDelete: SetNull)
+  hiringManager HiringManager? @relation(fields: [hiringManagerId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@map("outreach")
+}
+
+// ─────────────────────────── Interviews, notes, tasks ───────────────────────────
+
+model Interview {
+  id            String   @id @default(cuid())
+  userId        String
+  applicationId String
+  stage         InterviewStage
+  scheduledAt   DateTime?
+  calendarEventId String?
+  prepBrief     String?  @db.Text
+  outcome       String?
+  createdAt     DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("interviews")
+}
+
+model Note {
+  id            String   @id @default(cuid())
+  userId        String
+  jobId         String?
+  applicationId String?
+  body          String   @db.Text
+  createdAt     DateTime @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job         Job?         @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  application Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notes")
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  status    TaskStatus @default(TODO)
+  dueAt     DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("tasks")
+}
+
+// ─────────────────────────── Audit & analytics ───────────────────────────
+
+// Append-only. Every state change and AI decision lands here.
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String
+  actor      String // "system" | "user" | agent name
+  action     String
+  entityType String?
+  entityId   String?
+  // For AI actions: model, prompt hash, token/cost, inputs summary.
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("activity_log")
+}
+
+model AnalyticsSnapshot {
+  id               String   @id @default(cuid())
+  userId           String
+  periodStart      DateTime
+  periodEnd        DateTime
+  jobsFound        Int      @default(0)
+  qualified        Int      @default(0)
+  rejected         Int      @default(0)
+  applied          Int      @default(0)
+  recruiterReplies Int      @default(0)
+  interviews       Int      @default(0)
+  offers           Int      @default(0)
+  avgFitScore      Float    @default(0)
+  avgSalaryOffered Int?
+  // Learning outputs: per-variant and per-keyword performance.
+  variantStats     Json?
+  keywordStats     Json?
+  tunedWeights     Json?
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, periodStart])
+  @@map("analytics_snapshots")
+}
