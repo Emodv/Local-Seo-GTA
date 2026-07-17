@@ -178,13 +178,24 @@ test("summary mode: permanent for FT roles, fractional for contract/fractional",
   });
   assert.equal(pickSummaryMode(fractional), "fractional");
 
-  const contractByText = enrichJob({
+  const contractByTitle = enrichJob({
     ...strongJob,
     id: "job-contract",
     title: "Director of Marketing (6-month contract)",
-    description: "This is a contract consulting engagement.",
   });
-  assert.equal(pickSummaryMode(contractByText), "fractional");
+  assert.equal(pickSummaryMode(contractByTitle), "fractional");
+
+  // Regression: a full-time role at a company whose name/description contains
+  // "consulting" must stay permanent (title has no non-permanent signal).
+  const agencyFullTime = enrichJob({
+    ...strongJob,
+    id: "job-agency",
+    title: "Director of Demand Generation",
+    company: "Directive Consulting",
+    employmentType: "full-time",
+    description: "Director of Demand Generation at Directive Consulting, a performance-marketing agency.",
+  });
+  assert.equal(pickSummaryMode(agencyFullTime), "permanent");
 });
 
 test("tailored resume selects the matching summary and never mutates source", () => {

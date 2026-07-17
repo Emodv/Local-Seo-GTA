@@ -36,7 +36,10 @@ export interface TailoredResume {
   missingKeywords: string[];
 }
 
-const FRACTIONAL_SIGNALS = [
+// Signals that the ROLE (not the employer's name) is non-permanent. Only
+// scanned in the title, never the description — a company named
+// "...Consulting" or an agency that "consults" must not flip the summary.
+const FRACTIONAL_TITLE_SIGNALS = [
   "fractional",
   "contract",
   "consulting",
@@ -44,10 +47,15 @@ const FRACTIONAL_SIGNALS = [
   "part-time",
   "part time",
   "interim",
-  "advisor",
+  "advisory",
 ];
 
-/** Decide which pre-written summary to use for this job. */
+/**
+ * Decide which pre-written summary to use. employmentType is authoritative;
+ * otherwise we look only at the job TITLE for non-permanent signals. The
+ * description is deliberately NOT scanned, to avoid false positives from
+ * company names / boilerplate (e.g. "Directive Consulting").
+ */
 export function pickSummaryMode(job: EnrichedJob): SummaryMode {
   if (
     job.employmentType === "fractional" ||
@@ -56,8 +64,10 @@ export function pickSummaryMode(job: EnrichedJob): SummaryMode {
   ) {
     return "fractional";
   }
-  const hay = normalize(`${job.title} ${job.employmentType ?? ""} ${job.description}`);
-  return FRACTIONAL_SIGNALS.some((s) => hay.includes(s)) ? "fractional" : "permanent";
+  const title = normalize(job.title);
+  return FRACTIONAL_TITLE_SIGNALS.some((s) => title.includes(s))
+    ? "fractional"
+    : "permanent";
 }
 
 /** Extract salient keywords from a job description for ATS scoring. */
