@@ -14,12 +14,20 @@ import { applyHardFilters } from "./core/filters";
 import { scoreFit } from "./core/fit-score";
 import { decide } from "./core/decision";
 import { selectResume, selectBragStories } from "./core/selectors";
+import { pickSummaryMode, tailorResume, renderResumeText } from "./core/resume-tailor";
+import { RESUME } from "./candidate/resume-data";
 import { templateCoverLetter } from "./core/cover-letter";
 import { processJob } from "./pipeline";
 import { sampleIntelLookup, SAMPLE_JOBS } from "./fixtures/sample-jobs";
 import type { JobPosting } from "./types";
 
-const strongJob = SAMPLE_JOBS[0]; // Director of Growth Marketing, $185k
+const byId = (id: string): JobPosting => {
+  const j = SAMPLE_JOBS.find((x) => x.id === id);
+  if (!j) throw new Error(`fixture ${id} missing`);
+  return j;
+};
+
+const strongJob = byId("job-001"); // Director of Growth Marketing, $185k
 
 test("classifySeniority handles the hierarchy", () => {
   assert.equal(classifySeniority("VP of Marketing"), "vp");
@@ -40,20 +48,20 @@ test("salary estimator only returns figures for pursued levels", () => {
 test("enrichJob uses posted salary, else estimate", () => {
   const posted = enrichJob(strongJob);
   assert.equal(posted.effectiveSalaryCad, 185_000);
-  const noSalary = enrichJob(SAMPLE_JOBS[1]); // Head of Marketing, no salary
+  const noSalary = enrichJob(byId("job-002")); // Head of Marketing, no salary
   assert.equal(noSalary.effectiveSalaryCad, estimateSalaryCad("head"));
 });
 
 test("hard filters reject low salary, wrong function, and stale posts", () => {
-  const mgr = enrichJob(SAMPLE_JOBS[2]); // Marketing Manager $95k
+  const mgr = enrichJob(byId("job-003")); // Marketing Manager $95k
   assert.equal(applyHardFilters(mgr, EMOD_VAFA).passed, false);
 
-  const salesOps = enrichJob(SAMPLE_JOBS[3]); // Director of Sales Operations, US only
+  const salesOps = enrichJob(byId("job-004")); // Director of Sales Operations, US only
   const r = applyHardFilters(salesOps, EMOD_VAFA);
   assert.equal(r.passed, false);
   assert.ok(r.rejections.some((x) => /marketing/i.test(x)));
 
-  const staleVp = enrichJob(SAMPLE_JOBS[4]); // 40 days old
+  const staleVp = enrichJob(byId("job-005")); // 40 days old
   assert.equal(applyHardFilters(staleVp, EMOD_VAFA).passed, false);
 });
 
@@ -120,7 +128,7 @@ test("decision: autonomous auto-applies only when all gates pass", () => {
 });
 
 test("decision: rejects below 80 and failed filters", () => {
-  const mgr = enrichJob(SAMPLE_JOBS[2]);
+  const mgr = enrichJob(byId("job-003"));
   const fit = scoreFit(mgr, EMOD_VAFA);
   const filter = applyHardFilters(mgr, EMOD_VAFA);
   assert.equal(
@@ -139,7 +147,7 @@ test("cover letter is company-specific, <=300 words, no fabrication markers", ()
 });
 
 test("processJob rejects produce no generated materials", async () => {
-  const mgr: JobPosting = SAMPLE_JOBS[2];
+  const mgr: JobPosting = byId("job-003");
   const pkg = await processJob(mgr, { offlineCoverLetter: true });
   assert.equal(pkg.decision, "reject");
   assert.equal(pkg.coverLetter, null);
@@ -154,5 +162,63 @@ test("processJob end-to-end on strong job yields a full package", async () => {
   assert.notEqual(pkg.decision, "reject");
   assert.ok(pkg.coverLetter);
   assert.ok(pkg.selectedResume);
+  assert.ok(pkg.tailoredResume);
   assert.equal(pkg.selectedBragStories.length, 3);
+});
+
+test("summary mode: permanent for FT roles, fractional for contract/fractional", () => {
+  const perm = enrichJob(strongJob); // full-time
+  assert.equal(pickSummaryMode(perm), "permanent");
+
+  const fractional = enrichJob({
+    ...strongJob,
+    id: "job-frac",
+    title: "Fractional Head of Growth",
+    employmentType: "fractional",
+  });
+  assert.equal(pickSummaryMode(fractional), "fractional");
+
+  const contractByText = enrichJob({
+    ...strongJob,
+    id: "job-contract",
+    title: "Director of Marketing (6-month contract)",
+    description: "This is a contract consulting engagement.",
+  });
+  assert.equal(pickSummaryMode(contractByText), "fractional");
+});
+
+test("tailored resume selects the matching summary and never mutates source", () => {
+  const perm = tailorResume(enrichJob(strongJob));
+  assert.equal(perm.summary, RESUME.summaryPermanent);
+
+  const frac = tailorResume(
+    enrichJob({ ...strongJob, id: "f", employmentType: "fractional" }),
+  );
+  assert.equal(frac.summary, RESUME.summaryFractional);
+
+  // Source resume unchanged (no fabrication / mutation), same bullet set.
+  const srcBullets = RESUME.experience[0].bullets;
+  const outBullets = perm.experience[0].bullets;
+  assert.equal(outBullets.length, srcBullets.length);
+  assert.deepEqual([...outBullets].sort(), [...srcBullets].sort());
+});
+
+test("tailoring reorders bullets by JD relevance without dropping any", () => {
+  const t = tailorResume(enrichJob(strongJob));
+  // Every role keeps exactly its original bullets (permutation only).
+  t.experience.forEach((e, i) => {
+    assert.deepEqual(
+      [...e.bullets].sort(),
+      [...RESUME.experience[i].bullets].sort(),
+    );
+  });
+  // ATS coverage is a sane percentage.
+  assert.ok(t.atsKeywordCoverage >= 0 && t.atsKeywordCoverage <= 100);
+});
+
+test("rendered resume is plain text and contains real, unaltered dates", () => {
+  const text = renderResumeText(tailorResume(enrichJob(strongJob)));
+  assert.ok(text.includes("2022 – 2025")); // Intercap dates unchanged
+  assert.ok(text.includes("Schulich School of Business"));
+  assert.ok(text.includes("PROFESSIONAL EXPERIENCE"));
 });

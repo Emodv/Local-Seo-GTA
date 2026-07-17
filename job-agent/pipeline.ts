@@ -6,6 +6,7 @@ import { decide } from "./core/decision";
 import { enrichJob } from "./core/enrich";
 import { applyHardFilters } from "./core/filters";
 import { DEFAULT_WEIGHTS, scoreFit, type FitWeights } from "./core/fit-score";
+import { tailorResume } from "./core/resume-tailor";
 import { selectBragStories, selectResume } from "./core/selectors";
 import type {
   ApplicationPackage,
@@ -58,10 +59,12 @@ export async function processJob(
 
   // Only spend generation effort on jobs we'd actually pursue.
   let coverLetter: string | null = null;
+  let tailoredResume = null;
   if (decision !== "reject") {
     coverLetter = await generateCoverLetter(job, profile, stories, {
       apiKey: config.offlineCoverLetter ? undefined : process.env.ANTHROPIC_API_KEY,
     });
+    tailoredResume = tailorResume(job);
   }
 
   return {
@@ -73,6 +76,7 @@ export async function processJob(
     selectedBragStories: decision === "reject" ? [] : stories,
     coverLetter,
     resumeConfidence: confidence,
+    tailoredResume,
     createdAt: new Date().toISOString(),
   };
 }

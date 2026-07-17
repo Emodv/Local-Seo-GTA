@@ -73,6 +73,21 @@ export const SAMPLE_JOBS: JobPosting[] = [
       "Director of Sales Operations to own CRM hygiene, forecasting, and rev ops tooling. Salesforce admin experience required.",
   },
   {
+    id: "job-006",
+    source: "manual",
+    url: "https://example.com/careers/6",
+    title: "Fractional Head of Growth",
+    company: "Aperture Cyber",
+    location: "Remote (Canada)",
+    remote: true,
+    postedAt: daysAgo(4),
+    salaryMinCad: 200_000,
+    employmentType: "fractional",
+    description:
+      "Fractional Head of Growth (consulting engagement) for a cybersecurity startup. Own demand generation, paid media, and GTM strategy on a part-time basis. B2B SaaS experience and AI automation a strong plus.",
+    requirements: ["10+ years growth/demand generation leadership", "Comfortable in a fractional/advisory capacity"],
+  },
+  {
     id: "job-005",
     source: "manual",
     url: "https://example.com/careers/5",
@@ -108,6 +123,13 @@ export const SAMPLE_INTEL: Record<string, CompanyIntel> = {
     name: "Vertex FinTech",
     glassdoorRating: 3.9,
     industry: "fintech",
+  },
+  "Aperture Cyber": {
+    name: "Aperture Cyber",
+    glassdoorRating: 4.3,
+    employeeCount: 90,
+    fundingStage: "Series B",
+    industry: "cybersecurity",
   },
 };
 

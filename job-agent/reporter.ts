@@ -34,6 +34,11 @@ export function renderPackage(pkg: ApplicationPackage): string {
   lines.push(
     `   Resume: ${pkg.selectedResume?.file ?? "—"} (confidence ${pkg.resumeConfidence}%)`,
   );
+  if (pkg.tailoredResume) {
+    lines.push(
+      `   Tailoring: summary=${pkg.tailoredResume.summaryMode} · ATS coverage ${pkg.tailoredResume.atsKeywordCoverage}%`,
+    );
+  }
   lines.push(
     `   Brag stories: ${pkg.selectedBragStories.map((s) => s.id).join(", ") || "—"}`,
   );

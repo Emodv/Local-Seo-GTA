@@ -7,6 +7,9 @@
  *   is expressed as functions over these types so each stage is unit-testable.
  */
 
+import type { TailoredResume } from "./core/resume-tailor";
+export type { TailoredResume };
+
 export type EmploymentType =
   | "full-time"
   | "part-time"
@@ -146,6 +149,8 @@ export interface ApplicationPackage {
   coverLetter: string | null;
   /** Resume confidence 0-100 (keyword overlap of chosen variant vs JD). */
   resumeConfidence: number;
+  /** Tailored (reordered, summary-adapted) resume content + ATS coverage. */
+  tailoredResume: TailoredResume | null;
   createdAt: string;
 }
 
